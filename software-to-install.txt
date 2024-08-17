@@ -1,0 +1,7 @@
+Git.Git
+7zip.7zip
+Notepad++.Notepad++
+Microsoft.VisualStudioCode
+Google.Chrome
+Anaconda.Anaconda3
+Docker.DockerDesktop
