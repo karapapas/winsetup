@@ -3,5 +3,5 @@ Git.Git
 Notepad++.Notepad++
 Microsoft.VisualStudioCode
 Google.Chrome
-Anaconda.Anaconda3
+Python.Python.3.12
 Docker.DockerDesktop

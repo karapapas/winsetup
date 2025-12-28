@@ -1,0 +1,13 @@
+# Test logs
+tests/*.log
+*.log
+
+# Temporary files
+tests/temp/
+temp/
+
+# Windows thumbnail cache
+Thumbs.db
+
+# macOS
+.DS_Store
