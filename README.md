@@ -1,191 +1,199 @@
-# Windows Setup Automation
+# WinSetup - Interactive Windows Program Manager
 
-A lightweight automation tool to streamline Windows setup by removing bloatware and installing essential developer tools.
+An interactive PowerShell tool that helps you manage installed programs on Windows. Instead of maintaining static lists, **WinSetup** detects what's currently installed and lets you choose what to keep or uninstall through a beautiful terminal UI.
 
 ## Overview
 
-This project provides simple batch scripts that leverage `winget` (Windows Package Manager) to:
-- **Uninstall** unwanted bloatware and pre-installed Windows apps
-- **Install** essential developer tools and applications
+WinSetup provides an **interactive interface** to:
+- 🔍 **Detect** all installed programs via `winget`
+- ☑️  **Select** programs to keep using an intuitive multi-select menu
+- 🗑️  **Uninstall** programs you don't need with confirmation
+- 📊 **Review** a summary of what was removed
+
+## Features
+
+- Interactive numbered list selection in the terminal
+- Arrow-free input (type numbers like: 1,3,5-10)
+- Range support for bulk selections 
+- Safe defaults - explicit confirmation required before uninstallation
+- Automatic detection of installed programs via winget
+- Dry-run mode for testing without making changes
+- Built-in self-elevation (automatically requests admin rights)
+- No external dependencies - uses only built-in PowerShell
 
 ## Prerequisites
 
-- **Windows 10/11** with `winget` installed (comes pre-installed on Windows 11 and recent Windows 10 builds)
-- **Administrator privileges** (required for installing/uninstalling software)
+- Windows 10/11 with PowerShell 5.1 or later
+- winget installed (pre-installed on Windows 11 and recent Windows 10 builds)
+- Administrator privileges (script will auto-elevate)
 
 ## Installation
 
-1. **Clone the repository**:
-   ```bash
+1. Clone the repository:
+   ```powershell
    git clone <repository-url>
    cd winsetup
    ```
 
-2. **Customize software lists** (optional):
-   - Edit `software-to-install.txt` to add/remove applications you want to install
-   - Edit `software-to-uninstall.txt` to add/remove bloatware you want to remove
+2. Run the script:
+   ```powershell
+   .\winsetup.ps1
+   ```
 
 ## Usage
 
-### Unified Entry Point (Recommended)
+### Basic Usage
 
-The recommended way to use this tool is through the unified `winsetup.bat` script:
-
-**Uninstall Bloatware:**
-```cmd
-winsetup.bat uninstall
-```
-
-**Install Developer Tools:**
-```cmd
-winsetup.bat install
-```
-
-**Show Help:**
-```cmd
-winsetup.bat help
-```
-
-> **Note**: Right-click and select **"Run as Administrator"**, or run from an elevated command prompt.
-
-### Backward Compatibility
-
-The original `install.bat` and `uninstall.bat` scripts are still available for backward compatibility. They now call the unified `winsetup.bat` script internally:
-
-```cmd
-# These still work:
-install.bat
-uninstall.bat
-```
-
-## Default Software
-
-### Pre-configured installations:
-- Git
-- 7-Zip
-- Notepad++
-- Visual Studio Code
-- Google Chrome
-- Python 3.12
-- Docker Desktop
-
-### Pre-configured removals:
-- Xbox apps (Game Bar, TCUI, Gaming Overlay, etc.)
-- Bing Weather
-- Zune Music & Video
-- Windows Feedback Hub
-- Maps, Your Phone, Office Hub
-- And other common Windows bloatware
-
-## Customization
-
-### Adding software to install:
-1. Find the winget package ID by running:
-   ```cmd
-   winget search <app-name>
-   ```
-2. Add the package ID to `software-to-install.txt` (one per line)
-
-### Adding software to uninstall:
-1. Find the package ID by running:
-   ```cmd
-   winget list
-   ```
-2. Add the package ID to `software-to-uninstall.txt` (one per line)
-
-## Troubleshooting
-
-- **Error: winget not found**: Update to the latest version of Windows or install [App Installer](https://www.microsoft.com/p/app-installer/9nblggh4nns1) from the Microsoft Store
-- **Permission denied**: Ensure you're running the scripts as Administrator
-- **Package not found**: Verify the package ID is correct using `winget search <package-name>`
-
-## Testing
-
-A comprehensive test suite is available to validate install and uninstall functionality.
-
-### Running Tests
-
-**Prerequisites:**
-- PowerShell 5.1 or later
-- Administrator privileges (automatically requested)
-- winget installed
-
-**Easy Method (Recommended):**
-
-Simply double-click `tests\run-tests.bat` or run:
-
-```cmd
-cd tests
-run-tests.bat
-```
-
-This automatically handles admin elevation and execution policy.
-
-**Advanced Options:**
+Run the script:
 
 ```powershell
-# PowerShell as Administrator with execution policy bypass
-cd tests
-Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
-.\run-tests.ps1
-
-# Skip integration tests (faster, unit tests only)
-.\run-tests.ps1 -SkipIntegration
+.\winsetup.ps1
 ```
 
-### What Gets Tested
+What happens:
+1. Script detects all installed programs via `winget list`
+2. Displays a numbered list of all programs
+3. You type the numbers of programs to uninstall (e.g., `1,3,5-10`)
+   - Or press Enter without typing to exit
+4. Shows confirmation with list of selected programs
+5. Uninstalls after you type `yes`
+6. After uninstallation, asks if you want to uninstall more programs
+   - Type `yes` to return to the menu and select more programs
+   - Type `no` to exit
 
-**Unit Tests:**
-- File handling (empty files, blank lines, missing files)
-- Script file existence validation
-- Configuration file validation
+### Dry Run Mode
 
-**Integration Tests:**
-- Install test package (7-Zip)
-- Verify installation succeeded
-- Uninstall test package
-- Verify removal succeeded
-- Idempotency checks (re-installing already installed packages)
-- Graceful failure handling (non-existent packages)
+Test the script without making any actual changes:
 
-### Expected Output
-
-When all tests pass, you'll see:
-```
-=== WinSetup Test Suite ===
-[✓] Admin check
-[✓] Winget available
-
---- Unit Tests ---
-[✓] Empty file handling
-[✓] Blank lines handling
-... (more tests)
-
---- Integration Tests ---
-[✓] Install test package
-[✓] Verify installation
-... (more tests)
-
-=== Test Results ===
-Passed: 17
-Failed: 0
-[✓] === All Tests Passed ===
+```powershell
+.\winsetup.ps1 -DryRun
 ```
 
-Test results are saved to `tests/test-results.log`.
+In dry-run mode:
+- All steps execute normally (program detection, selection, confirmation)
+- Instead of actually uninstalling programs, the script shows what commands would be executed
+- No winget uninstall commands are run
+- You can safely test your selections without affecting your system
+- Perfect for verifying which programs would be removed before committing to the action
 
-For more details, see [tests/README.md](tests/README.md).
+Example output in dry-run mode:
+```
+[*] Uninstalling: Candy Crush Saga
+    [DRY RUN] Would execute: winget uninstall --id "king.CandyCrushSaga" --silent
+```
+
+### Selection Syntax
+
+When prompted, you can enter:
+- Single numbers: `5`
+- Multiple numbers: `1,3,7,10`
+- Ranges: `5-10`
+- Mixed: `1,3,5-10,15`
+- Nothing (just Enter): Exits without uninstalling
+
+## Example Workflow
+
+```powershell
+PS C:\winsetup> .\winsetup.ps1
+
+==================================================================
+          WinSetup - Interactive Program Manager              
+==================================================================
+
+[*] Detecting installed programs via winget...
+[OK] Found 47 installed programs
+
+================================================================
+       WinSetup - Interactive Program Manager                
+================================================================
+
+Installed Programs:
+
+  1. Microsoft Edge                        (Microsoft.Edge)
+  2. Git                                    (Git.Git)
+  3. Visual Studio Code                     (Microsoft.VisualStudioCode)
+  4. Candy Crush Saga                       (king.CandyCrushSaga)
+  5. Xbox Game Bar                          (Microsoft.XboxGameBar)
+  ...
+
+Instructions:
+  - Enter the numbers of programs to UNINSTALL (comma-separated)
+  - Example: 1,3,5-7,10
+  - Press Enter without typing anything to exit
+
+Enter program numbers to uninstall: 4,5
+
+================================================================
+                 UNINSTALL CONFIRMATION                      
+================================================================
+
+The following 2 program(s) will be UNINSTALLED:
+
+  X Candy Crush Saga
+    ID: king.CandyCrushSaga | Version: 1.0.0.0
+  X Xbox Game Bar
+    ID: Microsoft.XboxGameBar | Version: 5.721.2911.0
+
+Are you sure you want to proceed? (yes/no): yes
+
+================================================================
+                 UNINSTALLATION PROGRESS                     
+================================================================
+
+[*] Uninstalling: Candy Crush Saga
+    [OK] Successfully uninstalled
+
+[*] Uninstalling: Xbox Game Bar
+    [OK] Successfully uninstalled
+
+================================================================
+                       SUMMARY                                
+================================================================
+
+  OK Successful: 2
+```
+
+### Error: winget not found
+- **Solution**: Update Windows or install [App Installer](https://www.microsoft.com/p/app-installer/9nblggh4nns1) from the Microsoft Store
+
+### Error: Cannot be loaded because running scripts is disabled
+- **Solution**: Run PowerShell as Administrator and execute:
+  ```powershell
+  Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+  ```
+
+### Error: Permission denied / Access denied
+- Solution: The script will auto-elevate. If it fails, right-click PowerShell and select "Run as Administrator"
+
+### Program fails to uninstall
+- Some programs may require manual uninstallation through Windows Settings
+- Check the summary section for specific error messages
+- Try running `winget uninstall --id <ProgramId>` manually to see detailed error
+
+## Safety Features
+
+- Explicit selection required - user must type program numbers
+- Confirmation prompt shows exactly what will be uninstalled
+- Dry-run mode available for testing
+- Auto-elevation with user consent (UAC prompt)
+- Error handling continues with remaining programs if one fails
+- Clear summary of results at the end
 
 ## Notes
 
-- Scripts run in **silent mode** (`--silent` flag) to minimize user interaction
-- For safety, review the software lists before running the scripts
-- Some apps may require a system restart after installation/uninstallation
-- Run the test suite before making changes to validate functionality
+- Scripts run in **silent mode** to minimize interaction during uninstall
+- Some programs may require a **system restart** after uninstallation
+- The script only shows programs from the **winget source** (excludes Microsoft Store apps installed via different methods)
+- Uninstallation is **permanent** - make sure you've selected the correct programs
 
-## Future Improvements
+## Migration from Old Version
 
-See [SUGGESTIONS.md](SUGGESTIONS.md) for planned enhancements and recommendations.
+If you were using the previous batch-based version with `install.bat` and `uninstall.bat`:
+
+**Old workflow**: Maintain text files with programs to install/uninstall
+**New workflow**: Interactive detection and selection at runtime
+
+The old batch files and text files (`software-to-install.txt`, `software-to-uninstall.txt`) are deprecated and will be removed in the next version.
 
 ## License
 

@@ -6,36 +6,40 @@ This test suite validates the install and uninstall functionality of the WinSetu
 
 ## Prerequisites
 
-- **Windows 10/11** with PowerShell 5.1+
-- **Administrator privileges** (required for winget operations)
-- **winget** installed and available in PATH
+- Windows 10/11 with PowerShell 5.1+
+- winget installed and available in PATH
+- Administrator privileges (script will auto-elevate)
 
 ## Running Tests
 
 ### Quick Start (Recommended)
 
-Simply double-click `run-tests.bat` in the `tests` folder, or run from command prompt:
+Simply double-click `run-tests.bat` in the `tests` folder, or run:
 
 ```cmd
 cd tests
 run-tests.bat
 ```
 
-This will automatically:
-- Request Administrator privileges
-- Bypass PowerShell execution policy
-- Run the test suite
-- Display results
-
-### Advanced: Direct PowerShell Execution
-
-If you prefer to run the PowerShell script directly:
+Or run the PowerShell script directly:
 
 ```powershell
-# Open PowerShell as Administrator
-cd tests
-Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
-.\run-tests.ps1
+.\tests\run-tests.ps1
+```
+
+The test suite will automatically:
+- Request Administrator privileges if needed (UAC prompt)
+- Bypass PowerShell execution policy
+- Run all tests
+- Clean up test artifacts
+- Display results
+
+### Skip Integration Tests
+
+To run only unit tests (faster):
+
+```powershell
+.\tests\run-tests.ps1 -SkipIntegration
 ```
 
 ### What Gets Tested
@@ -103,7 +107,7 @@ To add new test cases:
 ## Troubleshooting
 
 **Tests fail with "Admin required"**
-- Run PowerShell as Administrator
+- The script should auto-elevate. If it fails, manually run PowerShell as Administrator
 
 **Tests fail with "winget not found"**
 - Ensure winget is installed and in PATH

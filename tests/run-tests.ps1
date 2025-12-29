@@ -1,5 +1,3 @@
-#Requires -RunAsAdministrator
-
 <#
 .SYNOPSIS
     WinSetup Test Suite - Validates install and uninstall functionality
@@ -23,6 +21,41 @@ param(
     [switch]$SkipIntegration = $false,
     [switch]$SkipCleanup = $false
 )
+
+#region Self-Elevation
+# Check if running as Administrator
+$currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+$isAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+if (-not $isAdmin) {
+    Write-Host "`n[!] This test suite requires Administrator privileges." -ForegroundColor Yellow
+    Write-Host "[*] Attempting to restart with elevated privileges...`n" -ForegroundColor Cyan
+    
+    # Build argument list for the elevated process
+    $arguments = "-ExecutionPolicy Bypass -File `"$PSCommandPath`""
+    
+    if ($SkipIntegration) {
+        $arguments += " -SkipIntegration"
+    }
+    
+    if ($SkipCleanup) {
+        $arguments += " -SkipCleanup"
+    }
+    
+    try {
+        # Start elevated process
+        Start-Process powershell -Verb RunAs -ArgumentList $arguments -Wait
+        exit 0
+    }
+    catch {
+        Write-Host "[X] Failed to elevate privileges: $_" -ForegroundColor Red
+        Write-Host "`nPlease run this test suite manually as Administrator:" -ForegroundColor Yellow
+        Write-Host "  Right-click PowerShell and select 'Run as Administrator'" -ForegroundColor White
+        Write-Host "  Then execute: .\tests\run-tests.ps1`n" -ForegroundColor White
+        exit 1
+    }
+}
+#endregion
 
 # Color helpers
 function Write-Success { param($msg) Write-Host "[PASS] $msg" -ForegroundColor Green }
@@ -90,16 +123,6 @@ Write-Header "=== WinSetup Test Suite ==="
 Write-Info "Test isolation enabled - all artifacts will be cleaned up automatically"
 
 Write-Info "Running pre-flight checks..."
-
-# Check admin
-try {
-    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
-    $isAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-    Test-Assert "Admin check" $isAdmin "Must run as Administrator"
-}
-catch {
-    Test-Assert "Admin check" $false $_.Exception.Message
-}
 
 # Check winget
 $wingetAvailable = $null -ne (Get-Command winget -ErrorAction SilentlyContinue)
